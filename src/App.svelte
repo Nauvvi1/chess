@@ -55,18 +55,16 @@
       if (mv) {
         queueMicrotask(() => boardEl && boardEl.setPosition(game.fen()));
         historySAN = game.history();
-        setLastMove(from, to);      // подсветим «откуда/куда»
+        setLastMove(from, to);
         updateStatus();
         engineGo();
       }
     } catch (e) { console.error('[MOVE][engine] failed', e); }
   }
 
-  // ====== overlay (независимый от ::part и markers) ======
   const ALL_SQUARES = [];
   for (const f of 'abcdefgh') for (let r=1; r<=8; r++) ALL_SQUARES.push(`${f}${r}`);
 
-  // состояние подсветок
   let dragging = false;
   let selected = null;
   let legalTargets = [];
@@ -76,9 +74,7 @@
   function buildOverlay() {
     if (!overlayEl) return;
     overlayEl.innerHTML = '';
-    // grid-area: col / row — у chessboard первый индекс это файл (a..h) → колонка
-    // делаем a-h = 1-8, 1-8 = ряды
-    const fileIndex = f => f.charCodeAt(0) - 96; // 'a'->1
+    const fileIndex = f => f.charCodeAt(0) - 96;
     for (const sq of ALL_SQUARES) {
       const col = fileIndex(sq[0]);
       const row = Number(sq[1]);
@@ -101,7 +97,6 @@
       getCell(selected)?.classList.add('sel');
       for (const t of legalTargets) getCell(t)?.classList.add('legal');
     }
-    // логи для наглядности
     console.log('[HL] paint',
       { selected, legalTargets, lastFrom, lastTo, dragging }
     );
@@ -122,7 +117,6 @@
     setClasses();
   }
 
-  // показать легальные для клетки
   function showLegal(square) {
     if (thinking || game.turn() !== 'w' || game.isGameOver()) {
       clearSelect(); setClasses(); return;
@@ -140,7 +134,6 @@
     setClasses();
   }
 
-  // ====== события ======
   function onClickSquare(e) {
     const { square } = e.detail;
     if (!square) return;
@@ -173,11 +166,10 @@
   function patchPieceStyle(retries = 20) {
     const sr = boardEl?.shadowRoot;
     if (!sr) {
-      // ждём, пока chess-board создаст shadowRoot
       if (retries > 0) setTimeout(() => patchPieceStyle(retries - 1), 16);
       return;
     }
-    if (sr.getElementById('user-piece-style')) return; // уже впрыснули
+    if (sr.getElementById('user-piece-style')) return;
 
     const st = document.createElement('style');
     st.id = 'user-piece-style';
@@ -207,11 +199,9 @@
   function onMouseOut() {
     if (dragging) return;
     if (!selected) return;
-    // убираем подсказку наведения, но не lastFrom/To
     clearSelect(); setClasses();
   }
 
-  // drag&drop — подсветка держится пока тащим
   function onDragStart(e) {
     const { piece, source } = e.detail;
     if (thinking || game.isGameOver()) { e.preventDefault(); return; }
@@ -238,7 +228,6 @@
     engineGo();
   }
 
-  // ===== сервис =====
   function updateStatus() {
     if (game.isCheckmate()) {
       status = game.turn() === 'w' ? 'Мат! Победили чёрные.' : 'Мат! Победили белые.';
@@ -299,18 +288,16 @@
   .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px}
   .btn{appearance:none;border:none;background:linear-gradient(135deg,#7cc0ff,#8c88ff 40%,#ff758c 100%);color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.3)}
   .btn:disabled{opacity:.7;cursor:not-allowed}
-/* Обёртка для оверлея */
 .board-wrap{ position:relative; width:min(92vw,640px); max-width:640px; aspect-ratio:1/1; margin:auto; }
 
 :global(.hl-overlay){
   position:absolute; inset:0;
   display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr);
-  z-index:9;               /* поверх доски; pointer-events:none оставляем, чтобы drag работал */
+  z-index:9;
   pointer-events:none;
 }
 :global(.hl-cell){ position:relative; }
 
-/* Мягкая палитра (чуть светлее) */
 :root{
   --sel:       rgba(170,155,255,.28);
   --legal:     rgba(150,200,255,.14);
@@ -323,7 +310,6 @@
 :global(.hl-cell.last-from) { box-shadow: inset 0 0 0 9999px var(--from);  border-radius:8px; }
 :global(.hl-cell.last-to)   { box-shadow: inset 0 0 0 9999px var(--to);    border-radius:8px; }
 
-/* «точка» по центру легальных */
 :global(.hl-cell.legal)::after{
   content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
   width:26%; height:26%; border-radius:50%;
@@ -357,7 +343,6 @@
           style="display:block; width:100%; height:100%;"
         ></chess-board>
 
-        <!-- наш независимый оверлей -->
         <div class="hl-overlay" bind:this={overlayEl}></div>
       </div>
     {/if}
